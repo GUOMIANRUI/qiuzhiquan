@@ -12,6 +12,7 @@ from django.core.urlresolvers import reverse  # 导入reverse解析模块（用�
 from django.http import HttpResponseRedirect,HttpResponse # 导入重定向模块
 
 from models import Interview,Author,User,Comment,Faq  #  导入面经数据表/类
+import ahocorasick
 # Create your views here.
 
 class InterListView(View):
@@ -164,6 +165,15 @@ class AddCommentView(View):
             comment_form = CommentForm(request.POST)
             if comment_form.is_valid():  # 如果表单有效，则保存评论信息
                 content = request.POST.get('comment')
+                content_pr = str(content)
+                wordlist = ['卧槽','狗东西','傻逼','你他妈','滚','老子','你大爷的','    草泥马','转帐']
+                actree = ahocorasick.Automaton()
+                for index, word in enumerate(wordlist):
+                    actree.add_word(word, (index, word))
+                actree.make_automaton()
+                content = content_pr
+                for i in actree.iter(content_pr):
+                    content = content.replace(i[1][1], "**")
                 comments = Comment()
                 comments.comment = content
                 comments.user = request.user
